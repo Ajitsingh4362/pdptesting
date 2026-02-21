@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDP JSON Validator - Premium Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+    --bg: #050608;
+    --card-bg: #0f111a;
+    --accent: #39ff8f;
+    --accent-glow: rgba(57, 255, 143, 0.3);
+    --error: #ff3d5a;
+    --error-bg: rgba(255, 61, 90, 0.1);
+    --warn: #f5a623;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --border: #1e293b;
+    --glass: rgba(255, 255, 255, 0.03);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    background-image: radial-gradient(circle at 50% 0%, #161b33 0%, transparent 50%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 20px;
+    line-height: 1.5;
+}
+
+.container { width: 100%; max-width: 1000px; margin: 0 auto; }
+
+/* HEADER SECTION */
+header { text-align: center; margin-bottom: 40px; }
+.brand-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 12px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    background: var(--accent-glow);
+    display: inline-block;
+    margin-bottom: 16px;
+}
+h1 {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 800;
+    line-height: 0.9;
+    letter-spacing: -2px;
+    margin-bottom: 10px;
+}
+h1 span { color: var(--error); text-shadow: 0 0 20px rgba(255, 61, 90, 0.4); }
+.sub-headline { font-family: 'Space Mono', monospace; color: var(--text-dim); font-size: 12px; }
+
+/* UPLOAD CARD */
+.glass-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+}
+.drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 15px;
+    padding: 50px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--glass);
+}
+.drop-zone:hover {
+    border-color: var(--accent);
+    background: rgba(57, 255, 143, 0.05);
+    transform: scale(0.99);
+}
+.drop-icon { font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 0 10px var(--accent)); }
+.btn-main {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.btn-main:hover:not(:disabled) {
+    background: #62ffab;
+    box-shadow: 0 0 25px var(--accent-glow);
+    transform: translateY(-2px);
+}
+.btn-main:disabled { background: var(--border); color: var(--text-dim); cursor: not-allowed; }
+
+/* STATS GRID */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 24px;
+    display: none;
+}
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+}
+.stat-val { font-family: 'Space Mono', monospace; font-size: 32px; font-weight: 700; display: block; }
+.stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+
+/* ACTION BAR */
+.action-bar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    background: var(--card-bg);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+.search-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+}
+.search-input:focus { outline: none; border-color: var(--accent); }
+
+/* VARIANT BLOCKS */
+.variant-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 12px;
+    transition: all 0.3s;
+}
+.variant-item:hover { border-color: #475569; }
+.variant-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+}
+.v-idx { font-family: 'Space Mono', monospace; color: var(--text-dim); font-size: 12px; }
+.v-url {
+    flex: 1;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: #60a5fa;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+}
+.v-url:hover { text-decoration: underline; color: #93c5fd; }
+.v-badge-critical {
+    background: var(--error);
+    color: #000;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+}
+
+/* DATA GRID */
+.data-grid { display: none; padding: 0 20px 20px; }
+.data-grid.open { display: block; animation: slideDown 0.3s ease-out; }
+.grid-table { width: 100%; border-collapse: collapse; }
+.grid-row { border-bottom: 1px solid var(--border); }
+.grid-row td { padding: 12px 8px; font-size: 12px; font-family: 'Space Mono', monospace; }
+.col-key { color: var(--text-dim); width: 220px; }
+.col-val { color: var(--error); font-weight: 700; }
+
+/* TAGS */
+.tag { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.tag-error { background: var(--error-bg); color: var(--error); border: 1px solid var(--error); }
+.tag-warn { background: rgba(245, 166, 35, 0.1); color: var(--warn); border: 1px solid var(--warn); }
+
+footer {
+    text-align: center;
+    margin-top: 60px;
+    padding-bottom: 40px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+}
+.footer-text { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-dim); }
+.footer-name { color: var(--accent); font-weight: 700; letter-spacing: 1px; }
+
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="brand-badge">Engineered for Accuracy</div>
+        <h1>JSON <span>CRUNCHER</span></h1>
+        <p class="sub-headline">// Mandatory Schema Validator & Issue Detector</p>
+    </header>
+
+    <div class="glass-card">
+        <div class="drop-zone" id="dropZone">
+            <input type="file" id="fileInput" accept=".json" multiple style="position:absolute; inset:0; opacity:0; cursor:pointer;">
+            <div class="drop-icon">🚀</div>
+            <div class="drop-title" style="font-weight:700; font-size:18px; margin-bottom:5px;">Launch Payload</div>
+            <div class="drop-sub" style="color:var(--text-dim); font-size:12px;">Drag & Drop JSON files to analyze</div>
+        </div>
+        
+        <div id="filePreview" style="display:none; margin-top:15px; padding:10px; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
+            <span id="fileName" style="font-family:'Space Mono'; font-size:12px; color:var(--accent);"></span>
+        </div>
+
+        <button class="btn-main" id="processBtn" onclick="validate()" disabled>Scan Files for Issues</button>
+    </div>
+
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><span class="stat-val" id="count-total">0</span><span class="stat-label">Processed</span></div>
+        <div class="stat-card"><span class="stat-val" id="count-err" style="color:var(--error)">0</span><span class="stat-label">Critical</span></div>
+        <div class="stat-card"><span class="stat-val" id="count-warn" style="color:var(--warn)">0</span><span class="stat-label">Warnings</span></div>
+        <div class="stat-card"><span class="stat-val" id="count-ok" style="color:var(--accent)">0</span><span class="stat-label">Clean</span></div>
+    </div>
+
+    <div class="action-bar" id="actionBar">
+        <input type="text" class="search-input" id="urlSearch" placeholder="Filter by URL..." oninput="renderResults()">
+        <button onclick="downloadExcel()" style="background:transparent; border:1px solid var(--accent); color:var(--accent); padding:8px 16px; border-radius:8px; cursor:pointer; font-family:'Syne'; font-weight:700;">Export XLSX</button>
+    </div>
+
+    <div id="resultsWrapper"></div>
+    
+    <footer>
+        <p class="footer-text">PDP Validator Engine • v2.5 Premium</p>
+        <p class="footer-text" style="margin-top:8px;">Made with ❤️ by <span class="footer-name">AJIT KUMAR</span></p>
+    </footer>
+</div>
+
+<script>
+const SCHEMA_KEYS = [
+    'url', 'item_id', 'variant_id', 'title', 'description', 'product_category', 
+    'category_tree', 'brand', 'image_url', 'price', 'sale_price', 'availability', 
+    'availability_date', 'group_id', 'listing_has_variations', 'variant_attributes', 
+    'variants', 'store_name', 'seller_url', 'seller_privacy_policy', 'seller_tos', 
+    'return_policy', 'return_window', 'target_countries', 'store_country', 
+    'category_urls', 'all_variations'
+];
+
+let DATA_STORE = [];
+let loadedFiles = [];
+
+const fileInput = document.getElementById('fileInput');
+const dropZone = document.getElementById('dropZone');
+
+fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = "var(--accent)"; });
+dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = "var(--border)"; });
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    handleFiles(e.dataTransfer.files);
+});
+
+function handleFiles(files) {
+    loadedFiles = Array.from(files);
+    document.getElementById('filePreview').style.display = 'block';
+    document.getElementById('fileName').textContent = `${loadedFiles.length} file(s) ready to scan`;
+    document.getElementById('processBtn').disabled = false;
+}
+
+async function validate() {
+    DATA_STORE = [];
+    const btn = document.getElementById('processBtn');
+    btn.textContent = "Analyzing...";
+    btn.disabled = true;
+
+    for (const file of loadedFiles) {
+        const text = await file.text();
+        try {
+            const json = JSON.parse(text);
+            const items = Array.isArray(json) ? json : [json];
+            
+            items.forEach(item => {
+                const issues = [];
+                SCHEMA_KEYS.forEach(key => {
+                    const val = item[key];
+                    if (!(key in item)) {
+                        issues.push({ key, type: 'MISSING', severity: 'err' });
+                    } else if (val === null || val === undefined || val === "") {
+                        issues.push({ key, type: 'NULL/EMPTY', severity: 'err' });
+                    } else if (Array.isArray(val) && val.length === 0) {
+                        issues.push({ key, type: 'EMPTY ARRAY', severity: 'warn' });
+                    } else if (Array.isArray(val)) {
+                        const strings = val.map(v => JSON.stringify(v));
+                        if (new Set(strings).size !== strings.length) {
+                            issues.push({ key, type: 'DUPLICATE DATA', severity: 'warn' });
+                        }
+                    }
+                });
+                
+                DATA_STORE.push({
+                    url: item.url || 'N/A',
+                    issues: issues,
+                    hasError: issues.some(i => i.severity === 'err'),
+                    hasWarn: issues.some(i => i.severity === 'warn')
+                });
+            });
+        } catch (e) { alert("Invalid JSON in file: " + file.name); }
+    }
+
+    updateStats();
+    renderResults();
+    btn.textContent = "Scan Again";
+    btn.disabled = false;
+}
+
+function updateStats() {
+    document.getElementById('statsGrid').style.display = 'grid';
+    document.getElementById('actionBar').style.display = 'flex';
+    document.getElementById('count-total').textContent = DATA_STORE.length;
+    document.getElementById('count-err').textContent = DATA_STORE.filter(d => d.hasError).length;
+    document.getElementById('count-warn').textContent = DATA_STORE.filter(d => d.hasWarn).length;
+    document.getElementById('count-ok').textContent = DATA_STORE.filter(d => d.issues.length === 0).length;
+}
+
+function renderResults() {
+    const query = document.getElementById('urlSearch').value.toLowerCase();
+    const wrapper = document.getElementById('resultsWrapper');
+    wrapper.innerHTML = "";
+
+    const filtered = DATA_STORE.filter(d => d.url.toLowerCase().includes(query));
+
+    filtered.forEach((item, idx) => {
+        const block = document.createElement('div');
+        block.className = 'variant-item';
+        
+        const issueCount = item.issues.filter(i => i.severity === 'err').length;
+        
+        block.innerHTML = `
+            <div class="variant-header" onclick="toggleData(this)">
+                <span class="v-idx">#${idx + 1}</span>
+                <a href="${item.url}" target="_blank" class="v-url" onclick="event.stopPropagation()">${item.url}</a>
+                <div style="display:flex; gap:8px;">
+                    ${issueCount > 0 ? `<span class="v-badge-critical">${issueCount} CRITICAL</span>` : ''}
+                    ${item.hasWarn ? `<span class="tag tag-warn">Warning</span>` : ''}
+                    ${item.issues.length === 0 ? `<span class="tag" style="color:var(--accent); border:1px solid var(--accent)">Clean</span>` : ''}
+                </div>
+            </div>
+            <div class="data-grid">
+                <table class="grid-table">
+                    ${item.issues.map(iss => `
+                        <tr class="grid-row">
+                            <td class="col-key">
+                                <span style="width:8px; height:8px; border-radius:50%; background:${iss.severity==='err'?'var(--error)':'var(--warn)'}; display:inline-block; margin-right:8px;"></span>
+                                ${iss.key}
+                            </td>
+                            <td class="col-val" style="color:${iss.severity==='err'?'var(--error)':'var(--warn)'}">${iss.type}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            </div>
+        `;
+        wrapper.appendChild(block);
+    });
+}
+
+function toggleData(header) {
+    const grid = header.nextElementSibling;
+    grid.classList.toggle('open');
+}
+
+function downloadExcel() {
+    const rows = DATA_STORE.map((item, idx) => {
+        const row = { Index: idx + 1, URL: item.url, Status: item.hasError ? 'ERROR' : 'OK' };
+        item.issues.forEach(iss => { row[iss.key] = iss.type; });
+        return row;
+    });
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Audit");
+    XLSX.writeFile(wb, "Audit_Report.xlsx");
+}
+</script>
+
+</body>
+</html>
