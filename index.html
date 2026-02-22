@@ -463,6 +463,7 @@ async function validate() {
 
                 DATA_STORE.push({
                     url: item.url || 'N/A',
+                    rawItem: item,
                     errors, warnings,
                     hasError: errors.length > 0,
                     hasWarn:  warnings.length > 0
@@ -560,16 +561,38 @@ function renderResults() {
 
 // ─── EXPORT ───────────────────────────────────────────────────────────────────
 function downloadExcel() {
+    const schemaFields = Array.from(SCHEMA);
+
     const rows = DATA_STORE.map((d, i) => {
         const row = {
             '#': i + 1,
             URL: d.url,
             Status: d.hasError ? 'ERROR' : d.hasWarn ? 'WARNING' : 'OK'
         };
-        d.errors.forEach(e => row[e.key] = e.type);
-        d.warnings.forEach(e => row[e.key] = e.type);
+
+        // Build issue lookup map
+        const issueMap = {};
+        d.errors.forEach(e => issueMap[e.key] = '[' + e.type + ']');
+        d.warnings.forEach(w => issueMap[w.key] = '[' + w.type + ']');
+
+        // Add ALL schema fields with actual value from raw item
+        schemaFields.forEach(field => {
+            const rawVal = d.rawItem[field];
+            if (issueMap[field]) {
+                // Show issue flag — actual value missing/null so just show flag
+                row[field] = issueMap[field];
+            } else if (Array.isArray(rawVal)) {
+                row[field] = JSON.stringify(rawVal);
+            } else if (typeof rawVal === 'object' && rawVal !== null) {
+                row[field] = JSON.stringify(rawVal);
+            } else {
+                row[field] = rawVal;
+            }
+        });
+
         return row;
     });
+
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Audit');
