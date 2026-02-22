@@ -3,411 +3,579 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PDP JSON Validator - Premium Edition</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<title>JSON Cruncher — PDP Validator v3.0</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
-    --bg: #050608;
-    --card-bg: #0f111a;
-    --accent: #39ff8f;
-    --accent-glow: rgba(57, 255, 143, 0.3);
-    --error: #ff3d5a;
-    --error-bg: rgba(255, 61, 90, 0.1);
-    --warn: #f5a623;
-    --text: #e2e8f0;
-    --text-dim: #64748b;
-    --border: #1e293b;
-    --glass: rgba(255, 255, 255, 0.03);
+    --bg: #07090f;
+    --surface: #0d1117;
+    --surface2: #131820;
+    --accent: #00e5a0;
+    --accent-dim: rgba(0,229,160,0.12);
+    --accent-glow: rgba(0,229,160,0.25);
+    --red: #ff4757;
+    --red-dim: rgba(255,71,87,0.12);
+    --orange: #ffa502;
+    --orange-dim: rgba(255,165,2,0.12);
+    --text: #dde4ef;
+    --text-muted: #4d5a6e;
+    --text-dim: #8899aa;
+    --border: #1c2433;
+    --border2: #263040;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
 
 body {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     background: var(--bg);
-    background-image: radial-gradient(circle at 50% 0%, #161b33 0%, transparent 50%);
     color: var(--text);
     min-height: 100vh;
-    padding: 40px 20px;
-    line-height: 1.5;
+    padding: 36px 20px 80px;
+    background-image:
+        radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,229,160,0.07) 0%, transparent 60%);
 }
 
-.container { width: 100%; max-width: 1000px; margin: 0 auto; }
+.container { max-width: 980px; margin: 0 auto; }
 
-/* HEADER SECTION */
-header { text-align: center; margin-bottom: 40px; }
-.brand-badge {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
+/* HEADER */
+header { text-align: center; margin-bottom: 44px; }
+.version-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
     color: var(--accent);
-    border: 1px solid var(--accent);
-    padding: 4px 12px;
+    border: 1px solid rgba(0,229,160,0.3);
+    background: var(--accent-dim);
+    padding: 4px 14px;
     border-radius: 100px;
-    text-transform: uppercase;
     letter-spacing: 2px;
-    background: var(--accent-glow);
-    display: inline-block;
-    margin-bottom: 16px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
 }
+.version-pill::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); animation: pulse 2s infinite; }
 h1 {
-    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-size: clamp(2.8rem, 7vw, 4.5rem);
     font-weight: 800;
+    letter-spacing: -3px;
     line-height: 0.9;
-    letter-spacing: -2px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
-h1 span { color: var(--error); text-shadow: 0 0 20px rgba(255, 61, 90, 0.4); }
-.sub-headline { font-family: 'Space Mono', monospace; color: var(--text-dim); font-size: 12px; }
+h1 .cruncher { color: var(--red); text-shadow: 0 0 30px rgba(255,71,87,0.35); }
+.tagline { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
 
-/* UPLOAD CARD */
-.glass-card {
-    background: var(--card-bg);
+/* UPLOAD ZONE */
+.card {
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-    margin-bottom: 24px;
-    position: relative;
-    overflow: hidden;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 20px;
 }
 .drop-zone {
-    border: 2px dashed var(--border);
-    border-radius: 15px;
-    padding: 50px 20px;
+    border: 2px dashed var(--border2);
+    border-radius: 14px;
+    padding: 44px 20px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    background: var(--glass);
+    position: relative;
+    transition: all 0.25s ease;
+    background: rgba(255,255,255,0.015);
 }
-.drop-zone:hover {
+.drop-zone:hover, .drop-zone.active {
     border-color: var(--accent);
-    background: rgba(57, 255, 143, 0.05);
-    transform: scale(0.99);
+    background: var(--accent-dim);
 }
-.drop-icon { font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 0 10px var(--accent)); }
-.btn-main {
+.drop-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.drop-icon { font-size: 40px; margin-bottom: 12px; display: block; }
+.drop-title { font-weight: 800; font-size: 17px; margin-bottom: 4px; }
+.drop-sub { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); }
+
+.file-preview {
+    display: none;
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(0,229,160,0.2);
+    border-radius: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+}
+.btn-scan {
     width: 100%;
-    padding: 16px;
+    padding: 15px;
     background: var(--accent);
     color: #000;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
     border: none;
     border-radius: 12px;
-    font-size: 16px;
-    font-weight: 800;
     cursor: pointer;
-    margin-top: 20px;
-    transition: all 0.3s;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    margin-top: 18px;
+    transition: all 0.25s;
 }
-.btn-main:hover:not(:disabled) {
-    background: #62ffab;
-    box-shadow: 0 0 25px var(--accent-glow);
-    transform: translateY(-2px);
-}
-.btn-main:disabled { background: var(--border); color: var(--text-dim); cursor: not-allowed; }
+.btn-scan:hover:not(:disabled) { background: #00ffb3; box-shadow: 0 0 28px var(--accent-glow); transform: translateY(-2px); }
+.btn-scan:disabled { background: var(--border2); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
 
-/* STATS GRID */
+/* STATS */
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
-    margin-bottom: 24px;
     display: none;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
 }
-.stat-card {
-    background: var(--card-bg);
+.stat-box {
+    background: var(--surface);
     border: 1px solid var(--border);
-    padding: 20px;
-    border-radius: 15px;
+    border-radius: 14px;
+    padding: 18px 14px;
     text-align: center;
 }
-.stat-val { font-family: 'Space Mono', monospace; font-size: 32px; font-weight: 700; display: block; }
-.stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.stat-num { font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 700; display: block; line-height: 1; margin-bottom: 6px; }
+.stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; font-family: 'IBM Plex Mono', monospace; }
 
 /* ACTION BAR */
 .action-bar {
     display: none;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    background: var(--card-bg);
-    padding: 12px;
-    border-radius: 12px;
+    gap: 10px;
+    margin-bottom: 18px;
+    background: var(--surface);
     border: 1px solid var(--border);
+    padding: 10px;
+    border-radius: 12px;
 }
-.search-input {
+.search-box {
     flex: 1;
     background: var(--bg);
-    border: 1px solid var(--border);
-    padding: 10px 16px;
+    border: 1px solid var(--border2);
     border-radius: 8px;
-    color: #fff;
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
+    padding: 9px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
 }
-.search-input:focus { outline: none; border-color: var(--accent); }
+.search-box:focus { outline: none; border-color: var(--accent); }
+.search-box::placeholder { color: var(--text-muted); }
+.btn-export {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.btn-export:hover { background: var(--accent-dim); }
 
-/* VARIANT BLOCKS */
-.variant-item {
-    background: var(--card-bg);
+/* RESULTS */
+.result-item {
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
-    margin-bottom: 12px;
-    transition: all 0.3s;
+    margin-bottom: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
 }
-.variant-item:hover { border-color: #475569; }
-.variant-header {
-    padding: 16px 20px;
+.result-item:hover { border-color: var(--border2); }
+
+.result-item.has-error { border-left: 3px solid var(--red); }
+.result-item.has-warn  { border-left: 3px solid var(--orange); }
+.result-item.is-clean  { border-left: 3px solid var(--accent); }
+
+/* URL ROW */
+.url-row {
     display: flex;
     align-items: center;
-    gap: 15px;
-    cursor: pointer;
+    gap: 12px;
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--border);
 }
-.v-idx { font-family: 'Space Mono', monospace; color: var(--text-dim); font-size: 12px; }
-.v-url {
+.item-index {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    min-width: 28px;
+}
+.item-url {
     flex: 1;
-    font-family: 'Space Mono', monospace;
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     color: #60a5fa;
+    text-decoration: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-decoration: none;
 }
-.v-url:hover { text-decoration: underline; color: #93c5fd; }
-.v-badge-critical {
-    background: var(--error);
-    color: #000;
-    font-weight: 800;
-    padding: 2px 10px;
-    border-radius: 6px;
+.item-url:hover { color: #93c5fd; text-decoration: underline; }
+.badges { display: flex; gap: 6px; flex-shrink: 0; }
+.badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 5px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.badge-err  { background: var(--red); color: #000; }
+.badge-warn { background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange); }
+.badge-ok   { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,229,160,0.4); }
+
+/* ISSUES */
+.issues-area { padding: 14px 18px 16px; }
+.issues-area.empty { padding: 12px 18px; }
+.clean-msg {
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 7px;
 }
 
-/* DATA GRID */
-.data-grid { display: none; padding: 0 20px 20px; }
-.data-grid.open { display: block; animation: slideDown 0.3s ease-out; }
-.grid-table { width: 100%; border-collapse: collapse; }
-.grid-row { border-bottom: 1px solid var(--border); }
-.grid-row td { padding: 12px 8px; font-size: 12px; font-family: 'Space Mono', monospace; }
-.col-key { color: var(--text-dim); width: 220px; }
-.col-val { color: var(--error); font-weight: 700; }
+.fields-section { margin-bottom: 10px; }
+.fields-section:last-child { margin-bottom: 0; }
+.section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.section-label .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dot-red    { background: var(--red);    box-shadow: 0 0 6px var(--red); }
+.dot-orange { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+.section-label span   { color: var(--text-muted); }
+.section-label strong { color: var(--text-dim); }
 
-/* TAGS */
-.tag { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
-.tag-error { background: var(--error-bg); color: var(--error); border: 1px solid var(--error); }
-.tag-warn { background: rgba(245, 166, 35, 0.1); color: var(--warn); border: 1px solid var(--warn); }
+.chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 7px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+}
+.chip-error {
+    background: var(--red-dim);
+    border: 1px solid rgba(255,71,87,0.35);
+    color: #ff8a96;
+}
+.chip-error .chip-key  { color: #ff4757; font-weight: 700; font-size: 12px; }
+.chip-error .chip-type { color: #ff8a96; font-size: 10px; background: rgba(255,71,87,0.15); padding: 1px 6px; border-radius: 4px; }
+
+.chip-warn {
+    background: var(--orange-dim);
+    border: 1px solid rgba(255,165,2,0.3);
+    color: #ffc156;
+}
+.chip-warn .chip-key  { color: var(--orange); font-weight: 700; font-size: 12px; }
+.chip-warn .chip-type { color: #ffc156; font-size: 10px; background: rgba(255,165,2,0.12); padding: 1px 6px; border-radius: 4px; }
+
+/* LEGEND */
+.legend {
+    display: none;
+    align-items: center;
+    gap: 18px;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+}
 
 footer {
     text-align: center;
     margin-top: 60px;
-    padding-bottom: 40px;
+    padding-top: 24px;
     border-top: 1px solid var(--border);
-    padding-top: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
 }
-.footer-text { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-dim); }
-.footer-name { color: var(--accent); font-weight: 700; letter-spacing: 1px; }
+footer span { color: var(--accent); font-weight: 700; }
 
-@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.result-item { animation: fadeIn 0.25s ease-out both; }
 
-/* SCROLLBAR */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width:5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius:10px; }
 </style>
 </head>
 <body>
 
 <div class="container">
+
     <header>
-        <div class="brand-badge">Engineered for Accuracy</div>
-        <h1>JSON <span>CRUNCHER</span></h1>
-        <p class="sub-headline">// Mandatory Schema Validator & Issue Detector</p>
+        <div class="version-pill">v3.0 Premium</div>
+        <h1>JSON <span class="cruncher">CRUNCHER</span></h1>
+        <p class="tagline">// PDP Schema Validator · Works flawlessly for 20+ users simultaneously</p>
     </header>
 
-    <div class="glass-card">
+    <div class="card">
         <div class="drop-zone" id="dropZone">
-            <input type="file" id="fileInput" accept=".json" multiple style="position:absolute; inset:0; opacity:0; cursor:pointer;">
-            <div class="drop-icon">🚀</div>
-            <div class="drop-title" style="font-weight:700; font-size:18px; margin-bottom:5px;">Launch Payload</div>
-            <div class="drop-sub" style="color:var(--text-dim); font-size:12px;">Drag & Drop JSON files to analyze</div>
+            <input type="file" id="fileInput" accept=".json" multiple>
+            <span class="drop-icon">⚡</span>
+            <div class="drop-title">Drop JSON Files Here</div>
+            <div class="drop-sub">Or click to browse — multiple files supported</div>
         </div>
-        
-        <div id="filePreview" style="display:none; margin-top:15px; padding:10px; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
-            <span id="fileName" style="font-family:'Space Mono'; font-size:12px; color:var(--accent);"></span>
-        </div>
-
-        <button class="btn-main" id="processBtn" onclick="validate()" disabled>Scan Files for Issues</button>
+        <div class="file-preview" id="filePreview"></div>
+        <button class="btn-scan" id="scanBtn" disabled onclick="validate()">Scan Files for Issues</button>
     </div>
 
     <div class="stats-grid" id="statsGrid">
-        <div class="stat-card"><span class="stat-val" id="count-total">0</span><span class="stat-label">Processed</span></div>
-        <div class="stat-card"><span class="stat-val" id="count-err" style="color:var(--error)">0</span><span class="stat-label">Critical</span></div>
-        <div class="stat-card"><span class="stat-val" id="count-warn" style="color:var(--warn)">0</span><span class="stat-label">Warnings</span></div>
-        <div class="stat-card"><span class="stat-val" id="count-ok" style="color:var(--accent)">0</span><span class="stat-label">Clean</span></div>
+        <div class="stat-box">
+            <span class="stat-num" id="s-total">0</span>
+            <span class="stat-lbl">Processed</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-num" id="s-err" style="color:var(--red)">0</span>
+            <span class="stat-lbl">Critical</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-num" id="s-warn" style="color:var(--orange)">0</span>
+            <span class="stat-lbl">Warnings</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-num" id="s-ok" style="color:var(--accent)">0</span>
+            <span class="stat-lbl">Clean</span>
+        </div>
     </div>
 
     <div class="action-bar" id="actionBar">
-        <input type="text" class="search-input" id="urlSearch" placeholder="Filter by URL..." oninput="renderResults()">
-        <button onclick="downloadExcel()" style="background:transparent; border:1px solid var(--accent); color:var(--accent); padding:8px 16px; border-radius:8px; cursor:pointer; font-family:'Syne'; font-weight:700;">Export XLSX</button>
+        <input type="text" class="search-box" id="urlSearch" placeholder="🔍  Filter by URL..." oninput="renderResults()">
+        <button class="btn-export" onclick="downloadExcel()">⬇ Export XLSX</button>
+    </div>
+
+    <div class="legend" id="legend">
+        <div class="legend-item"><span class="dot dot-red"></span> Critical — Missing / Null / Empty</div>
+        <div class="legend-item"><span class="dot dot-orange"></span> Warning — Empty Array / Duplicate</div>
     </div>
 
     <div id="resultsWrapper"></div>
-    
+
     <footer>
-        <p class="footer-text">PDP Validator Engine • v2.5 Premium</p>
-        <p class="footer-text" style="margin-top:8px;">Made with ❤️ by <span class="footer-name">AJIT KUMAR</span></p>
+        <p>JSON Cruncher — PDP Validator Engine &nbsp;|&nbsp; Made with ❤️ by <span>AJIT KUMAR</span></p>
     </footer>
 </div>
 
 <script>
-const SCHEMA_KEYS = [
-    'url', 'item_id', 'variant_id', 'title', 'description', 'product_category', 
-    'category_tree', 'brand', 'image_url', 'price', 'sale_price', 'availability', 
-    'availability_date', 'group_id', 'listing_has_variations', 'variant_attributes', 
-    'variants', 'store_name', 'seller_url', 'seller_privacy_policy', 'seller_tos', 
-    'return_policy', 'return_window', 'target_countries', 'store_country', 
-    'category_urls', 'all_variations'
-];
+// ─── SCHEMA ───────────────────────────────────────────────────────────────────
+const SCHEMA = new Set([
+    'url','item_id','variant_id','title','description','product_category',
+    'category_tree','brand','image_url','price','sale_price','availability',
+    'availability_date','group_id','listing_has_variations','variant_attributes',
+    'variants','store_name','seller_url','seller_privacy_policy','seller_tos',
+    'return_policy','return_window','target_countries','store_country',
+    'category_urls','all_variations'
+]);
 
 let DATA_STORE = [];
 let loadedFiles = [];
 
+// ─── FILE HANDLING ────────────────────────────────────────────────────────────
 const fileInput = document.getElementById('fileInput');
-const dropZone = document.getElementById('dropZone');
+const dropZone  = document.getElementById('dropZone');
 
-fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = "var(--accent)"; });
-dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = "var(--border)"; });
-dropZone.addEventListener('drop', (e) => {
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+dropZone.addEventListener('drop', e => {
     e.preventDefault();
+    dropZone.classList.remove('active');
     handleFiles(e.dataTransfer.files);
 });
 
 function handleFiles(files) {
     loadedFiles = Array.from(files);
-    document.getElementById('filePreview').style.display = 'block';
-    document.getElementById('fileName').textContent = `${loadedFiles.length} file(s) ready to scan`;
-    document.getElementById('processBtn').disabled = false;
+    const fp = document.getElementById('filePreview');
+    fp.style.display = 'block';
+    fp.textContent = `✓  ${loadedFiles.length} file(s) ready: ${loadedFiles.map(f => f.name).join(', ')}`;
+    document.getElementById('scanBtn').disabled = false;
 }
 
+// ─── VALIDATE ─────────────────────────────────────────────────────────────────
 async function validate() {
     DATA_STORE = [];
-    const btn = document.getElementById('processBtn');
-    btn.textContent = "Analyzing...";
+    const btn = document.getElementById('scanBtn');
+    btn.textContent = 'Analyzing…';
     btn.disabled = true;
 
     for (const file of loadedFiles) {
-        const text = await file.text();
+        let text;
+        try { text = await file.text(); } catch(e) { continue; }
         try {
             const json = JSON.parse(text);
             const items = Array.isArray(json) ? json : [json];
-            
+
             items.forEach(item => {
-                const issues = [];
-                SCHEMA_KEYS.forEach(key => {
+                const errors = [], warnings = [];
+
+                // Check schema fields only
+                for (const key of SCHEMA) {
                     const val = item[key];
                     if (!(key in item)) {
-                        issues.push({ key, type: 'MISSING', severity: 'err' });
-                    } else if (val === null || val === undefined || val === "") {
-                        issues.push({ key, type: 'NULL/EMPTY', severity: 'err' });
+                        errors.push({ key, type: 'MISSING' });
+                    } else if (val === null || val === undefined || val === '') {
+                        errors.push({ key, type: 'NULL / EMPTY' });
                     } else if (Array.isArray(val) && val.length === 0) {
-                        issues.push({ key, type: 'EMPTY ARRAY', severity: 'warn' });
+                        warnings.push({ key, type: 'EMPTY ARRAY' });
                     } else if (Array.isArray(val)) {
-                        const strings = val.map(v => JSON.stringify(v));
-                        if (new Set(strings).size !== strings.length) {
-                            issues.push({ key, type: 'DUPLICATE DATA', severity: 'warn' });
-                        }
+                        const strs = val.map(v => JSON.stringify(v));
+                        if (new Set(strs).size !== strs.length)
+                            warnings.push({ key, type: 'DUPLICATE DATA' });
                     }
-                });
-                
+                }
+
+                // Extra fields check REMOVED
+
                 DATA_STORE.push({
                     url: item.url || 'N/A',
-                    issues: issues,
-                    hasError: issues.some(i => i.severity === 'err'),
-                    hasWarn: issues.some(i => i.severity === 'warn')
+                    errors, warnings,
+                    hasError: errors.length > 0,
+                    hasWarn:  warnings.length > 0
                 });
             });
-        } catch (e) { alert("Invalid JSON in file: " + file.name); }
+        } catch(e) { alert('Invalid JSON: ' + file.name); }
     }
 
     updateStats();
     renderResults();
-    btn.textContent = "Scan Again";
+    btn.textContent = 'Scan Again';
     btn.disabled = false;
 }
 
+// ─── STATS ────────────────────────────────────────────────────────────────────
 function updateStats() {
     document.getElementById('statsGrid').style.display = 'grid';
-    document.getElementById('actionBar').style.display = 'flex';
-    document.getElementById('count-total').textContent = DATA_STORE.length;
-    document.getElementById('count-err').textContent = DATA_STORE.filter(d => d.hasError).length;
-    document.getElementById('count-warn').textContent = DATA_STORE.filter(d => d.hasWarn).length;
-    document.getElementById('count-ok').textContent = DATA_STORE.filter(d => d.issues.length === 0).length;
+    document.getElementById('actionBar').style.display  = 'flex';
+    document.getElementById('legend').style.display     = 'flex';
+    document.getElementById('s-total').textContent = DATA_STORE.length;
+    document.getElementById('s-err').textContent   = DATA_STORE.filter(d => d.hasError).length;
+    document.getElementById('s-warn').textContent  = DATA_STORE.filter(d => d.hasWarn && !d.hasError).length;
+    document.getElementById('s-ok').textContent    = DATA_STORE.filter(d => !d.hasError && !d.hasWarn).length;
 }
 
+// ─── RENDER ───────────────────────────────────────────────────────────────────
 function renderResults() {
-    const query = document.getElementById('urlSearch').value.toLowerCase();
+    const q = document.getElementById('urlSearch').value.toLowerCase();
     const wrapper = document.getElementById('resultsWrapper');
-    wrapper.innerHTML = "";
+    wrapper.innerHTML = '';
 
-    const filtered = DATA_STORE.filter(d => d.url.toLowerCase().includes(query));
+    const filtered = DATA_STORE.filter(d => d.url.toLowerCase().includes(q));
 
     filtered.forEach((item, idx) => {
-        const block = document.createElement('div');
-        block.className = 'variant-item';
-        
-        const issueCount = item.issues.filter(i => i.severity === 'err').length;
-        
-        block.innerHTML = `
-            <div class="variant-header" onclick="toggleData(this)">
-                <span class="v-idx">#${idx + 1}</span>
-                <a href="${item.url}" target="_blank" class="v-url" onclick="event.stopPropagation()">${item.url}</a>
-                <div style="display:flex; gap:8px;">
-                    ${issueCount > 0 ? `<span class="v-badge-critical">${issueCount} CRITICAL</span>` : ''}
-                    ${item.hasWarn ? `<span class="tag tag-warn">Warning</span>` : ''}
-                    ${item.issues.length === 0 ? `<span class="tag" style="color:var(--accent); border:1px solid var(--accent)">Clean</span>` : ''}
-                </div>
+        const el = document.createElement('div');
+        el.className = 'result-item ' + (
+            item.hasError ? 'has-error' :
+            item.hasWarn  ? 'has-warn'  : 'is-clean'
+        );
+        el.style.animationDelay = (idx * 0.025) + 's';
+
+        // Badges
+        let badges = '';
+        if (item.errors.length)   badges += `<span class="badge badge-err">${item.errors.length} Critical</span>`;
+        if (item.warnings.length) badges += `<span class="badge badge-warn">${item.warnings.length} Warn</span>`;
+        if (!item.errors.length && !item.warnings.length)
+            badges = `<span class="badge badge-ok">✓ Clean</span>`;
+
+        // Chips builder
+        function buildChips(arr, cls) {
+            return arr.map(iss => `
+                <span class="chip ${cls}">
+                    <span class="chip-key">${iss.key}</span>
+                    <span class="chip-type">${iss.type}</span>
+                </span>`).join('');
+        }
+
+        let issuesHTML = '';
+        if (!item.hasError && !item.hasWarn) {
+            issuesHTML = `<div class="issues-area empty"><div class="clean-msg">✓ &nbsp;All required fields are present and valid.</div></div>`;
+        } else {
+            let sections = '';
+            if (item.errors.length) sections += `
+                <div class="fields-section">
+                    <div class="section-label">
+                        <span class="dot dot-red"></span>
+                        <strong style="color:var(--red)">CRITICAL</strong>
+                        <span>(${item.errors.length} fields)</span>
+                    </div>
+                    <div class="chips-row">${buildChips(item.errors, 'chip-error')}</div>
+                </div>`;
+            if (item.warnings.length) sections += `
+                <div class="fields-section">
+                    <div class="section-label">
+                        <span class="dot dot-orange"></span>
+                        <strong style="color:var(--orange)">WARNINGS</strong>
+                        <span>(${item.warnings.length} fields)</span>
+                    </div>
+                    <div class="chips-row">${buildChips(item.warnings, 'chip-warn')}</div>
+                </div>`;
+            issuesHTML = `<div class="issues-area">${sections}</div>`;
+        }
+
+        el.innerHTML = `
+            <div class="url-row">
+                <span class="item-index">#${idx + 1}</span>
+                <a href="${item.url}" target="_blank" class="item-url">${item.url}</a>
+                <div class="badges">${badges}</div>
             </div>
-            <div class="data-grid">
-                <table class="grid-table">
-                    ${item.issues.map(iss => `
-                        <tr class="grid-row">
-                            <td class="col-key">
-                                <span style="width:8px; height:8px; border-radius:50%; background:${iss.severity==='err'?'var(--error)':'var(--warn)'}; display:inline-block; margin-right:8px;"></span>
-                                ${iss.key}
-                            </td>
-                            <td class="col-val" style="color:${iss.severity==='err'?'var(--error)':'var(--warn)'}">${iss.type}</td>
-                        </tr>
-                    `).join('')}
-                </table>
-            </div>
+            ${issuesHTML}
         `;
-        wrapper.appendChild(block);
+        wrapper.appendChild(el);
     });
 }
 
-function toggleData(header) {
-    const grid = header.nextElementSibling;
-    grid.classList.toggle('open');
-}
-
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
 function downloadExcel() {
-    const rows = DATA_STORE.map((item, idx) => {
-        const row = { Index: idx + 1, URL: item.url, Status: item.hasError ? 'ERROR' : 'OK' };
-        item.issues.forEach(iss => { row[iss.key] = iss.type; });
+    const rows = DATA_STORE.map((d, i) => {
+        const row = {
+            '#': i + 1,
+            URL: d.url,
+            Status: d.hasError ? 'ERROR' : d.hasWarn ? 'WARNING' : 'OK'
+        };
+        d.errors.forEach(e => row[e.key] = e.type);
+        d.warnings.forEach(e => row[e.key] = e.type);
         return row;
     });
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Audit");
-    XLSX.writeFile(wb, "Audit_Report.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, 'Audit');
+    XLSX.writeFile(wb, 'PDP_Audit_Report.xlsx');
 }
 </script>
 
 </body>
-
 </html>
